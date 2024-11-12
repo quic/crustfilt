@@ -1,0 +1,8 @@
+[package]
+name = "coprocfilt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bitmatch = "0.1.1"
+clap = { version = "4.5.20", features = ["derive"] }
