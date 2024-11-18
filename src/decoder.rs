@@ -1,3 +1,6 @@
+// Copyright (c) 2024, Qualcomm Innovation Center, Inc. All rights reserved.
+// SPDX-License-Identifier: BSD-3-Clause
+
 use bitmatch::bitmatch;
 use std::fmt::{Debug, Display};
 
@@ -122,7 +125,6 @@ fn decode_48(insn: u64) -> Result<Box<dyn Insn>, ()> {
 
 #[bitmatch]
 fn decode_64(insn: u64) -> Result<Box<dyn Insn>, ()> {
-    println!("DEBUG: {insn:x}");
     #[bitmatch]
     match insn {
         "00100000000000000010000000001001010000000000000000111111" => Ok(Box::new(Fake64 {})),
