@@ -33,11 +33,13 @@ The main advantages of this approach are:
 There are of course trade-offs in this approach:
 
 * You can only use the (conventional for RISC-V) `<mnemonic> <operands>` syntax,
-  this approach does not support assembly syntaxes like Hexagon's operator-based
-  syntax.
+  this approach does not support assembly syntaxes like [the Hexagon
+  ISA][hexagon]'s operator-based syntax.
 * You need to remember to use `crustfilt` when disassembling, and in the
   debugger.
 * Parts of this approach do not work with Link-Time Optimization (LTO).
+
+[hexagon]: https://docs.qualcomm.com/bundle/publicresource/80-N2040-53_REV_AB_Qualcomm_Hexagon_V73_Programmers_Reference_Manual.pdf
 
 ## Assembling
 
@@ -55,9 +57,10 @@ You can use the `.insn <type> <operands>` format when using inline assembly.
 Any register operands use the register name (i.e. `a0`). Immediates are written
 directly.
 
-This example shows how to assemble `qc.addsat a0, a1, a2` (from the `Xqcia`
-extension) using instruction types. This extension has recently been added to
-LLVM, but versions before 20 and binutils/gcc do not support it.
+This example shows how to assemble `qc.addsat a0, a1, a2` (from Qualcomm's
+[`Xqcia` extension](https://github.com/quic/riscv-unified-db/releases/latest))
+using instruction types. This extension has recently been added to LLVM, but
+versions before 20 and binutils/gcc do not support it.
 
 ```asm
   .insn r 0xb, 0x3, 0x0e, a0, a1, a2
@@ -101,11 +104,12 @@ There are various details to this approach that close attention needs to be paid
 to, which will be highlighted after the examples.
 
 We can use this approach to assemble the 48-bit `qc.e.li a0, 0xff00ff00`
-instruction (from the `Xqcili` extension):
+instruction (from Qualcomm's [`Xqcili`
+extension](https://github.com/quic/riscv-unified-db/releases/latest)):
 
 ```asm
   .insn 0x6, 0x1f | (10 << 7) | (0xff00ff00 << 16)
-``asm
+```
 
 We can make this a lot easier to read, and add error checking, using assembly macros:
 
@@ -197,10 +201,11 @@ __asm__(".include \"macros.s\"");
 ```
 
 > Unfortunately, `.include` doesn't work with LTO in LLVM: [LLVM issue
-> #112920](https://github.com/llvm/llvm-project/issues/112920). You can get
-> around this using include guards in the assembly file, and `.include`-ing in
-> every local inline assembly block, or by directly writing the `.insn` in the
-> inline assembly block and avoid using macros at all.
+> #112920](https://github.com/llvm/llvm-project/issues/112920).
+>
+> You can get around this by directly writing the `.insn` in the inline assembly
+> block and avoid using macros at all. Assembly macros can only be defined once
+> per Compilation Unit, so redefining them at each use is a bad idea.
 
 Then, for example, to use the `qc.e.li` macro:
 
