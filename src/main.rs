@@ -46,6 +46,7 @@ fn parse_line(s: &String) -> Result<String, ()> {
 }
 
 fn main() {
+    let _cli  = Cli::parse();
     for line in std::io::stdin().lines() {
         if let Ok(data) = line {
             if let Ok(dline) = parse_line(&data) {
