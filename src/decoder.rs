@@ -34,7 +34,7 @@ impl std::fmt::Display for CmPush {
         match self.urlist {
             4 => write!(f, "CmPush {{ra}},"),
             5 => write!(f, "CmPush {{ra, s0}},"),
-            6..15 => write!(f, "CmPush {{ra, s0-s{}}},", self.urlist - 5),
+            6..=14 => write!(f, "CmPush {{ra, s0-s{}}},", self.urlist - 5),
             15 => write!(f, "CmPush {{ra, s0-s11}},"),
             _ => Err(std::fmt::Error::default()),
         }?;
