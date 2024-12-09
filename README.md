@@ -1,7 +1,7 @@
 
 # Project Description
 
-Example application that shows LLVM toolchian users how they can extend the capabilities of the toolchain 
+Example application that shows LLVM toolchain users how they can extend the capabilities of the toolchain 
 to handle disassembling new or proprietary instructions that it does not support.
 
 This method can also be used with lldb to generate assembly for custom instruction not supported upstream
