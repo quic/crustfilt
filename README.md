@@ -8,7 +8,7 @@ This method can also be used with lldb to generate assembly for custom instructi
 
 ```
 clang  --target=riscv32 -c test.c 
-llvm-objdump -d | coprocfilt 
+llvm-objdump -d | crustfilt
 
 00000000 <main>:
        0: 1101          addi    sp, sp, -0x20
