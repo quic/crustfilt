@@ -213,10 +213,10 @@ Then, for example, to use the `qc.e.li` macro:
 // Adds 0xff00ff00 and saturates the result
 int32_t my_add_then_saturate(int32_t input) {
   int32_t C;
-  __asm__ ("qc.e.li %N[rd], 0xff00ff00" : [rd]"r"(C) :::);
+  __asm__ ("qc.e.li %N[rd], 0xff00ff00" : [rd]"=r"(C) :::);
 
   int32_t res;
-  __asm__ ("qc.addsat %[rd], %[rs1], %[rs2]" : [rd]"r"(res) : [rs1]"r"(input), [rs2]"r"(C));
+  __asm__ ("qc.addsat %[rd], %[rs1], %[rs2]" : [rd]"=r"(res) : [rs1]"r"(input), [rs2]"r"(C));
 
   return res;
 }
