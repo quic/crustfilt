@@ -81,6 +81,34 @@ This could also be wrapped in an assembly macro, for clarity:
   qc.addsat a0, a1, a2
 ```
 
+Error checking for input and output operands can also be added to the macro with
+[`.if`](https://sourceware.org/binutils/docs/as/If.html#index-ifnes-directive)
+assembler directive variants for comparing strings.
+In such case, both `x` and ABI register names should be checked.
+
+```asm
+// Definition of output operand error checking macro
+.macro _valid_gpr_nozero regN:req
+  .ifnc \regN, x0
+    .ifnc \regN, zero
+      .exitm
+    .endif
+  .endif
+  .error "register must be a GPR excluding zero (x0)"
+.endm
+
+// Definition of `qc.addsat` instruction with output operand error checking
+.macro qc.addsat d:req, s1:req, s2:req
+  // the `:req` suffix denotes these parameters are required.
+  // Error checking for output operand
+  _valid_gpr_nozero \d
+  // Macro parameters are referenced using a backslash:
+  .insn r 0xb, 0x3, 0x0e, \d, \s1, \s2
+.endm
+
+  // Use of `qc.addsat` macro
+  qc.addsat a0, a1, a2
+```
 Macro definitions can be put into a separate file, and depending on whether you
 are using the C preprocessor on assembly files, can either be `#include`d or
 `.include`d where they are used.
