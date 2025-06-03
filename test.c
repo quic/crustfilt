@@ -8,10 +8,10 @@ int main() {
     int c = 32;
 
     asm(".insn 8, 0x2000200940003F"); // 64 custom instruction
-    asm(".insn 6, 0x021F | 0x00001000 << 32"); // xqci.e.li rd=8 imm=0x1000
-    asm(".insn 4, 0x84F940B"); // xqci.insbi  
+    asm(".insn 6, 0x021F | 0x00001000 << 32"); // qc.e.li rd=8 imm=0x1000
+    asm(".insn 4, 0x84F940B"); // qc.insbi
     asm(".insn 2, 0xB8F2"); // cm.push
-    asm(".insn 4, 0x84F940B"); // xqci.insbi  
+    asm(".insn 4, 0x84F940B"); // qc.insbi
     asm(".insn 2, 0xB8F2"); // cm.push
     return a * c;
 }
