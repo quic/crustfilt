@@ -37,7 +37,8 @@ There are of course trade-offs in this approach:
   ISA][hexagon]'s operator-based syntax.
 * You need to remember to use `crustfilt` when disassembling, and in the
   debugger.
-* Parts of this approach do not work with Link-Time Optimization (LTO).
+* Parts of this approach need to be modified to work with Link-Time Optimization
+  (LTO).
 
 [hexagon]: https://docs.qualcomm.com/bundle/publicresource/80-N2040-53_REV_AB_Qualcomm_Hexagon_V73_Programmers_Reference_Manual.pdf
 
@@ -228,12 +229,6 @@ long as the file is in your include path.
 __asm__(".include \"macros.s\"");
 ```
 
-> Unfortunately, `.include` doesn't work with LTO in LLVM: [LLVM issue
-> #112920](https://github.com/llvm/llvm-project/issues/112920).
->
-> You can get around this by directly writing the `.insn` in the inline assembly
-> block and avoid using macros at all. Assembly macros can only be defined once
-> per Compilation Unit, so redefining them at each use is a bad idea.
 
 Then, for example, to use the `qc.e.li` macro:
 
@@ -267,6 +262,50 @@ that use the Raw Instruction Encoding, rather than instruction types.
 More constraints and modifiers are described in the [RISC-V toolchain
 conventions
 document](https://github.com/riscv-non-isa/riscv-toolchain-conventions).
+
+### Link-Time Optimisation
+
+Unfortunately, `.include` doesn't work in inline assembly with LTO in LLVM:
+[LLVM issue #112920](https://github.com/llvm/llvm-project/issues/112920). We are
+working to address this.
+
+In the meantime, the approach to use this from inline assembly is to define the macros
+in global inline assembly blocks in a C/C++ header. For instance:
+
+```c
+#ifndef custom_instructions_asm
+#define custom_instructions_asm
+
+__asm__(
+  ".macro _valid_gpr_nox0 regN:req\n"
+  "  .if (\\regN <= 0) || (\\regN > 31)\n"
+  "    .error \"Invalid GPRNoX0 number\"\n"
+  "  .endif\n"
+  ".endm\n"
+  ".macro _valid_imm32 imm:req\n"
+  "  .if (\\imm < 0) || (\\imm > 0xffffffff)\n"
+  "    .error \"Invalid 32-bit Immediate\"\n"
+  "  .endif\n"
+  ".endm\n"
+
+  // Definition of `qc.e.li` instruction macro
+  ".macro qc.e.li dN:req, imm:req\n"
+  "  // Validate macro arguments\n"
+  "  _valid_gpr_nox0 \\dN\n"
+  "  _valid_imm32 \\imm\n"
+  "  .insn 0x6, 0x1f | (\\dN << 7) | (\\imm << 16)\n"
+  ".endm\n"
+);
+
+#endif // custom_instructions_asm
+```
+
+Things to note about this approach:
+- The `\` for referring to assembly macro arguments, and the `"` need escaping
+  with `\` as they are now in C string literals.
+- These macros can now be used after a regular C/C++-style `#include`.
+- Instruction definitions can be deduplicated using C preprocessor macros which
+  produce C string literals.
 
 ## Disassembling
 
