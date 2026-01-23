@@ -290,7 +290,6 @@ __asm__(
 
   // Definition of `qc.e.li` instruction macro
   ".macro qc.e.li dN:req, imm:req\n"
-  "  // Validate macro arguments\n"
   "  _valid_gpr_nox0 \\dN\n"
   "  _valid_imm32 \\imm\n"
   "  .insn 0x6, 0x1f | (\\dN << 7) | (\\imm << 16)\n"
@@ -300,12 +299,35 @@ __asm__(
 #endif // custom_instructions_asm
 ```
 
-Things to note about this approach:
-- The `\` for referring to assembly macro arguments, and the `"` need escaping
-  with `\` as they are now in C string literals.
-- These macros can now be used after a regular C/C++-style `#include`.
-- Instruction definitions can be deduplicated using C preprocessor macros which
-  produce C string literals.
+Within the C string literals representing the assembly macro source, backslashes
+(`\`), quotes (`"`), and newlines need to be escaped properly. This is shown
+above in references to the Assembly macro arguments (i.e. `\\imm`), and in the
+error messages (i.e. `.error \"Invalid...\"`).
+
+
+This header can then be included as normal, before any use of the assembly
+macros in inline assembly.
+
+It is possible to use C preprocessor macros to assemble the C string literals
+which contain the source of the assembly macros. This can help to deduplicate
+instruction definitions. For instance, if there are three similar instructions
+with different mnemonics and encodings, but similar operands, we can define them
+like so:
+```c
+#define INSN_rri32(mnemonic, opcode) \
+  ".macro " mnemonic "dN:req, sN:req, imm:req\n" \
+  "  _valid_gpr_nox0 \\dN\n" \
+  "  _valid_gpr_nox0 \\sN\n" \
+  "  _valid_simm32 \\imm\n" \
+  "  .insn 0x8, " #opcode " | (\\dN << 7) | (\\sN << 11) | (\\imm << 16)\n" \
+  ".endm\n"
+
+__asm__(
+  // required definitions of `_valid_gpr_nox0` and `_valid_simm32` not shown
+  INSN_rri32("add", 0x2f)
+  INSN_rri32("sub", 0x3f)
+)
+```
 
 ## Disassembling
 
